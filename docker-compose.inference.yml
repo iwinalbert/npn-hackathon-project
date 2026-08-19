@@ -1,0 +1,24 @@
+
+services:
+  api:
+    build:
+      target: full
+    environment:
+      NPN_PROJECT_ROOT: /research
+      NPN_ENABLE_INFERENCE: "true"
+    volumes:
+      - ./backend/data:/data/product:ro
+      - ./research/models/champion:/research/models/champion:ro
+      - ./research/predictions/final_forecast:/research/predictions/final_forecast:ro
+      - npn-scratch:/research/experiments
+      - npn-scratch-preds:/research/predictions/validation
+    healthcheck:
+      start_period: 25s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+volumes:
+  npn-scratch:
+  npn-scratch-preds:
