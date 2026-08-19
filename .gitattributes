@@ -1,0 +1,20 @@
+* text=auto eol=lf
+
+*.bat        text eol=crlf
+*.cmd        text eol=crlf
+
+*.sh         text eol=lf
+Makefile     text eol=lf
+
+*.pdf        binary
+*.docx       binary
+*.png        binary
+*.jpg        binary
+*.parquet    binary
+*.duckdb     binary
+*.woff2      binary
+
+*.txt        -diff
+models/**    -diff -merge
+
+package-lock.json  -diff
