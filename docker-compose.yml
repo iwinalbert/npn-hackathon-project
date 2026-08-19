@@ -1,0 +1,58 @@
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: api
+    image: npn-forecast-api:latest
+    container_name: npn-api
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    ports:
+      - "8000:8000"
+    environment:
+      NPN_ENVIRONMENT: production
+      NPN_DATA_DIR: /data/product
+      NPN_CORS_ORIGINS: "http://localhost:5173,http://localhost:4173,http://localhost:8080"
+      NPN_LOG_LEVEL: INFO
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    volumes:
+      - ./backend/data:/data/product:ro
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request,sys,json;r=json.load(urllib.request.urlopen('http://127.0.0.1:8000/api/v1/ready',timeout=4));sys.exit(0 if r.get('ready') else 1)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: npn-forecast-frontend:latest
+    container_name: npn-frontend
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    ports:
+      - "8080:8080"
+    environment:
+      API_HOST: api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 4s
+      start_period: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 128M

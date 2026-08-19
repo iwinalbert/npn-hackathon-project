@@ -1,0 +1,93 @@
+
+services:
+  api:
+    ports: []
+    expose:
+      - "8000"
+
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+
+    cap_drop:
+      - ALL
+    security_opt:
+      - "no-new-privileges:true"
+
+    environment:
+      NPN_ENVIRONMENT: production
+      NPN_LOG_LEVEL: INFO
+      NPN_CORS_ORIGINS: ""
+      NPN_CORS_ALLOW_ALL: "false"
+
+    healthcheck:
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+    restart: always
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+        reservations:
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  frontend:
+    ports:
+      - "8080:8080"
+
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:size=32m
+      - /var/run:size=8m
+      - /tmp:size=16m
+      - /etc/nginx/conf.d:size=8m
+
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    security_opt:
+      - "no-new-privileges:true"
+
+    healthcheck:
+      interval: 15s
+      timeout: 4s
+      start_period: 5s
+      retries: 3
+
+    restart: always
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.5"
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
