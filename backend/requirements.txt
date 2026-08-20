@@ -17,11 +17,7 @@ pydantic-settings==2.7.0
 duckdb==1.5.5
 
 # --- AI assistant (optional at runtime) ---
-# The service degrades gracefully when no provider key is set, but the SDK
-# must be importable. ~3 small packages; no ML or native dependencies.
-google-genai==2.18.1
-# Groq has no first-party SDK dependency here — it's a plain OpenAI-compatible
-# REST call, made with httpx directly. Declared explicitly even though
-# google-genai already pulls httpx in transitively, so it isn't an accident of
-# someone else's dependency tree.
+# The service degrades gracefully when no provider key is set. Groq has no
+# first-party SDK dependency here — it's a plain OpenAI-compatible REST call,
+# made directly with httpx.
 httpx==0.28.1

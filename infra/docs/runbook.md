@@ -120,22 +120,22 @@ ceilings). Without `--prod` they are **unbounded** — a long-running stack on a
 dev box will eventually fill the disk. That is the main reason to use `--prod`
 for anything left running.
 
-The API never logs the Gemini key: it is a `SecretStr`, and every response is
+The API never logs the Groq key: it is a `SecretStr`, and every response is
 passed through `scrub_secrets()`.
 
 ---
 
-## Rotate the Gemini API key
+## Rotate the Groq API key
 
 ```bash
-# 1. new key from https://aistudio.google.com/apikey
+# 1. new key from https://console.groq.com/keys
 # 2. update the .env beside docker-compose.yml (or your platform's secret store)
 # 3. recreate the API so it picks up the new environment
 docker compose up -d --force-recreate api
 # 4. confirm
 curl -s localhost:8000/api/v1/genai/status
 python tasks.py smoke
-# 5. revoke the OLD key in the Google console -- this step is the one that
+# 5. revoke the OLD key in the Groq console -- this step is the one that
 #    actually makes the rotation meaningful
 ```
 
@@ -259,7 +259,7 @@ overwrite the evidence.
 | `python tasks.py smoke` | after every deploy, restart, or config change |
 | `docker system prune -f` | weekly on a dev box — build caches accumulate |
 | Check log volume | weekly if running **without** `--prod` |
-| Rotate the Gemini key | per your organisation's policy |
+| Rotate the Groq key | per your organisation's policy |
 | `python tasks.py verify-integrity` | before any release |
 
 ---

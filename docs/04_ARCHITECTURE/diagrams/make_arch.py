@@ -150,7 +150,7 @@ box(12, 37.1, 48, "NO RESEARCH TREE REQUIRED",
      "project root: research/ can be absent entirely."],
     edge=GHOST, face=GHOST_BG, dashed=True, tsize=8.8, lsize=7.2)
 
-box(120, 64, 36, "Google Gemini API",
+box(120, 64, 36, "Groq API",
     ["external · HTTPS egress,",
      "from the api container only",
      "unset key → the assistant",
@@ -221,7 +221,7 @@ ax.plot([4, 156], [1.4, 1.4], color=RULE, linewidth=1.0)
 ax.text(4, -1.6,
         "Browser → frontend only.  nginx proxies /api/ across the internal "
         "network, so there is one origin: no CORS, no API host in the bundle, "
-        "and no path for the Gemini key to reach the browser.",
+        "and no path for the Groq key to reach the browser.",
         fontsize=7.8, family=SANS, color=MUTED, va="center", ha="left")
 
 out = pathlib.Path(__file__).resolve().parent.parent / "system-architecture.png"

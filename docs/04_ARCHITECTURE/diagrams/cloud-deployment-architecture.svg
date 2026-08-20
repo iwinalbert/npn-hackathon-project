@@ -280,7 +280,7 @@
   <rect x="460" y="1058" width="440" height="110" rx="6" fill="#FFFFFF" stroke="#232F3E" stroke-width="1.3"/>
   <text x="680" y="1078" font-size="11.5" text-anchor="middle" font-weight="700" fill="#16191F">What never leaves this box</text>
   <text x="480" y="1102" font-size="9.8" fill="#5C6670">&#8226; long-lived AWS access keys</text>
-  <text x="480" y="1120" font-size="9.8" fill="#5C6670">&#8226; the Gemini API key (fetched at deploy time, not stored here)</text>
+  <text x="480" y="1120" font-size="9.8" fill="#5C6670">&#8226; the Groq API key (fetched at deploy time, not stored here)</text>
   <text x="480" y="1138" font-size="9.8" fill="#5C6670">&#8226; any SSH private key &#8212; none exists for this box</text>
   <text x="480" y="1156" font-size="9.8" fill="#5C6670">&#8226; the 130 MB data layer &#8212; synced once, outside the deploy path</text>
 

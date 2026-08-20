@@ -11,7 +11,7 @@
 > **Addendum — 2026-08. This document is the pre-implementation proposal and is
 > kept as written.** Everything in it was built. One component was added
 > afterwards and is therefore *not* described below: an **AI Forecast Assistant**
-> (a Gemini-backed explanatory layer over the same read-only API — 4 endpoints
+> (a Groq-backed explanatory layer over the same read-only API — 4 endpoints
 > under `/genai`, one React page, no write path to the model). Its architecture,
 > key handling and guardrails are documented in
 > [`GENAI_IMPLEMENTATION_REPORT.md`](../07_GENAI/GENAI_IMPLEMENTATION_REPORT.md). It changes

@@ -1,5 +1,14 @@
 # GENAI IMPLEMENTATION REPORT
 
+> **Superseded — 2026-08-20.** This report documents the assistant as built
+> against **Gemini**, including real incidents from that integration (§16).
+> The service has since dropped Gemini entirely and runs on **Groq only** —
+> `GeminiProvider` and the `google-genai` dependency no longer exist in the
+> codebase. Kept as written for the historical record; for the current
+> provider, config keys and behaviour see
+> [`environment-reference.md`](../../infra/docs/environment-reference.md) and
+> `backend/app/services/genai.py`.
+
 **Retail Demand Forecasting** — AI Forecast Assistant
 **Scope:** a Gemini-powered explanatory layer over the frozen forecasting model
 **Status:** complete and verified live — 4 endpoints, 75 backend tests

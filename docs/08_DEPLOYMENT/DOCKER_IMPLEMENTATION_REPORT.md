@@ -21,7 +21,7 @@ Browser  ──►  frontend container (nginx :8080)
                  │  serves the built SPA
                  │  /api/  ──proxy──►  api container (uvicorn :8000, target: api)
                                           ├─ /data/product  ro   product data layer (125 MB)
-                                          └─ HTTPS ──► Gemini API (only if a key is set)
+                                          └─ HTTPS ──► Groq API   (only if a key is set)
 
 WITH docker-compose.inference.yml — adds live model verification only
 
@@ -39,7 +39,7 @@ running this stack can have no `research/` directory whatsoever.
 
 One origin from the browser's point of view: nginx proxies `/api/` internally to
 `api:8000`, so no CORS is exercised, no API host is compiled into the bundle, and
-the Gemini key never leaves the API container.
+the Groq key never leaves the API container.
 
 ## 2. Images
 
@@ -174,7 +174,7 @@ the running system even by accident.
 | `NPN_ENABLE_INFERENCE` | `true` | `false` in the `api` target |
 | `NPN_CORS_ORIGINS` | dev origins | unused in this topology — same origin |
 | `API_HOST` *(frontend)* | `api:8000` | substituted into nginx at start |
-| **`GEMINI_API_KEY`** | `${GEMINI_API_KEY:-}` | **runtime interpolation only** |
+| **`GROQ_API_KEY`** | `${GROQ_API_KEY:-}` | **runtime interpolation only** |
 
 ## 5b. Why the Dockerfiles are not in a `docker/` directory
 
@@ -204,19 +204,19 @@ The key is never in an image, a layer, a log, the bundle, or git.
 
 | Control | Evidence |
 |---|---|
-| Not in any Dockerfile | no `GEMINI_API_KEY=<value>` anywhere; static check |
+| Not in any Dockerfile | no `GROQ_API_KEY=<value>` anywhere; static check |
 | Not in the build context | `.dockerignore` excludes `**/.env` and `**/.env.*`; simulated and asserted |
-| Injected at runtime | `GEMINI_API_KEY: ${GEMINI_API_KEY:-}` — compose interpolation from host env or a root `.env` |
-| Never reaches the browser | 0 key-shaped strings in `dist/`; the frontend has no AI SDK and no Gemini endpoint |
+| Injected at runtime | `GROQ_API_KEY: ${GROQ_API_KEY:-}` — compose interpolation from host env or a root `.env` |
+| Never reaches the browser | 0 key-shaped strings in `dist/`; the frontend has no AI SDK and no Groq endpoint |
 | Never logged | 0 occurrences in the API log across a full endpoint sweep |
 | Never in a response | `SecretStr`, plus `scrub_secrets()` on every reply |
 | Never in git | `git log -p --all` → 0 key-shaped strings; `.env` ignored |
 
 Docker is **not** used as a secret store. For real deployment the teammate should
-supply `GEMINI_API_KEY` through the platform's secret mechanism.
+supply `GROQ_API_KEY` through the platform's secret mechanism.
 
 Leaving it unset is fully supported: the assistant reports why it is unavailable,
-and the local guardrails still work because they never call Gemini at all.
+and the local guardrails still work because they never call Groq at all.
 
 ## 7. Dependency policy — versions unchanged
 
@@ -330,7 +330,7 @@ loads the 59.2M-row panel. The compose limit is 2 GB for that reason.
 
 ```bash
 python tasks.py build-db                   # ONCE — materialises the 125 MB data layer
-echo "GEMINI_API_KEY=your-key" > .env      # optional, beside docker-compose.yml
+echo "GROQ_API_KEY=your-key" > .env      # optional, beside docker-compose.yml
 docker compose up --build                  # http://localhost:8080
 ```
 
@@ -363,7 +363,7 @@ docker compose -f docker-compose.yml -f docker-compose.inference.yml up -d --bui
 `python tasks.py ui` still run the app directly on the host with hot reload;
 Docker is an additional path, not a replacement.
 
-Without a `GEMINI_API_KEY` everything works except the assistant, which explains
+Without a `GROQ_API_KEY` everything works except the assistant, which explains
 why it is unavailable.
 
 ## 12. First commands once Docker is available
@@ -402,8 +402,8 @@ docker compose exec api curl -s -X POST localhost:8000/api/v1/inference/verify
 docker compose exec api id                        # uid=10001(app)
 
 # 8. no secret baked into the image
-docker run --rm npn-forecast-api:latest printenv GEMINI_API_KEY   # must be EMPTY
-docker compose exec api printenv GEMINI_API_KEY                   # set, if you supplied one
+docker run --rm npn-forecast-api:latest printenv GROQ_API_KEY   # must be EMPTY
+docker compose exec api printenv GROQ_API_KEY                   # set, if you supplied one
 
 # 9. measurements this report could not take
 docker images npn-forecast-api npn-forecast-frontend
@@ -435,7 +435,7 @@ mounts, and a frontend that hard-codes no API host.
    "watch the frozen model reproduce its forecast" endpoint, and note that it
    requires `research/models/champion` and
    `research/predictions/final_forecast` to be present on the host.
-3. **`GEMINI_API_KEY` via the platform's secret manager**, not an env file.
+3. **`GROQ_API_KEY` via the platform's secret manager**, not an env file.
 4. **TLS, authentication and rate limiting at the edge.** None are in this stack.
    Note that each assistant request costs money — rate limiting matters.
 5. **Architecture.** Re-verify the wheel matrix if not `linux/amd64`.

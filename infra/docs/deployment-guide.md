@@ -72,7 +72,7 @@ pip install -r backend/requirements-dev.txt
 pip install pyyaml
 
 python tasks.py build-db
-echo "GEMINI_API_KEY=your-key" > .env       # optional
+echo "GROQ_API_KEY=your-key" > .env       # optional
 
 python tasks.py preflight
 python tasks.py docker-up --prod
@@ -109,7 +109,7 @@ these platforms need from you:
 - **The data layer**, via §2. Most serverless container platforms have no
   persistent volume — bake a data image or fetch from object storage.
 - **Readiness probe** on `/api/v1/ready`, liveness on `/api/v1/health` (§4).
-- **`GEMINI_API_KEY`** from the platform's secret manager, never an env file.
+- **`GROQ_API_KEY`** from the platform's secret manager, never an env file.
 - **`linux/amd64`.** The dependency wheels were checked for
   `manylinux_2_28_x86_64`. On arm64 (Graviton, Apple Silicon) re-verify them
   before assuming a build will succeed without compiling.
@@ -123,7 +123,7 @@ write them, the stack maps cleanly:
   `livenessProbe` → `/api/v1/health`
 - data layer as a `ReadOnlyMany` PVC, or an init container, or a baked image (§2)
 - `frontend` Deployment + Service, with `API_HOST` pointing at the API Service
-- `GEMINI_API_KEY` from a Secret
+- `GROQ_API_KEY` from a Secret
 - Ingress terminating TLS in front of the frontend Service
 
 Start from `docker-compose.yml` and
@@ -166,7 +166,7 @@ imports a much heavier dependency stack.
 
 ## 5. Secrets
 
-One secret exists: `GEMINI_API_KEY`, and it is **optional**. Without it every
+One secret exists: `GROQ_API_KEY`, and it is **optional**. Without it every
 other feature works and `/genai/status` explains why the assistant is
 unavailable.
 
@@ -177,7 +177,7 @@ unavailable.
 | Not in the browser bundle | asserted by CI (`grep` over `dist/`) |
 | Not in logs | `SecretStr` + `scrub_secrets()` on every response |
 | Not in git | asserted by preflight over all tracked files |
-| Injected at runtime only | `GEMINI_API_KEY: ${GEMINI_API_KEY:-}` |
+| Injected at runtime only | `GROQ_API_KEY: ${GROQ_API_KEY:-}` |
 
 **Docker is not a secret store.** For a real deployment use the platform's
 secret manager and inject at runtime. Rotation procedure:

@@ -1,13 +1,11 @@
 
 from __future__ import annotations
 
-import importlib.util
 import json
 import logging
 import re
 import time
 from dataclasses import dataclass, field
-from functools import lru_cache
 from typing import Any, Protocol
 
 import httpx
@@ -85,11 +83,8 @@ _INJECTION_PATTERNS = [
 ]
 
 _SECRET_SHAPES = [
-    re.compile(r"AIza[0-9A-Za-z_\-]{20,}"),
-    re.compile(r"AQ\.[0-9A-Za-z_\-]{20,}"),
     re.compile(r"sk-[A-Za-z0-9]{20,}"),
     re.compile(r"gsk_[A-Za-z0-9]{20,}"),
-    re.compile(r"GEMINI_API_KEY\s*[=:]\s*\S+", re.I),
     re.compile(r"GROQ_API_KEY\s*[=:]\s*\S+", re.I),
 ]
 
@@ -123,7 +118,6 @@ _POLICIES: tuple[_Policy, ...] = (
                        r"env(?:ironment)?\s+var|system\s+prompt|instructions)", re.I),
             re.compile(r"\bwhat(?:'s| is)\s+(?:your|the)\s+(?:api[_\s-]?key|"
                        r"secret|token|system\s+prompt)", re.I),
-            re.compile(r"\bGEMINI_API_KEY\b(?!\s+environment\s+variable)", re.I),
             re.compile(r"\bGROQ_API_KEY\b(?!\s+environment\s+variable)", re.I),
         ),
         answer=(
@@ -234,84 +228,6 @@ class LLMProvider(Protocol):
     def generate(self, system: str, prompt: str) -> str: ...
 
 
-@lru_cache(maxsize=1)
-def _sdk_installed() -> bool:
-    try:
-        return importlib.util.find_spec("google.genai") is not None
-    except (ImportError, AttributeError, ValueError):
-        return False
-
-
-class GeminiProvider:
-
-    name = "gemini"
-    key_env = "GEMINI_API_KEY"
-    model_env = "NPN_GEMINI_MODEL"
-
-    def __init__(self) -> None:
-        self._client: Any = None
-
-    @property
-    def model(self) -> str:
-        return settings.gemini_model
-
-    def available(self) -> tuple[bool, list[str]]:
-        problems: list[str] = []
-        if not settings.genai_enabled:
-            problems.append("assistant disabled by configuration "
-                            "(NPN_GENAI_ENABLED=false)")
-        if not settings.gemini_key_value:
-            problems.append("GEMINI_API_KEY is not set in the environment")
-        if not _sdk_installed():
-            problems.append("google-genai SDK unavailable: not installed")
-        return (not problems), problems
-
-    def _get_client(self) -> Any:
-        if self._client is None:
-            from google import genai                            # noqa: PLC0415
-            key = settings.gemini_key_value
-            if not key:
-                raise ServiceUnavailable("GEMINI_API_KEY is not configured")
-            self._client = genai.Client(api_key=key)
-        return self._client
-
-    def generate(self, system: str, prompt: str) -> str:
-        from google.genai import types                          # noqa: PLC0415
-
-        client = self._get_client()
-        response = client.models.generate_content(
-            model=settings.gemini_model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system,
-                temperature=settings.genai_temperature,
-                max_output_tokens=settings.genai_max_output_tokens,
-                top_p=0.9,
-                automatic_function_calling=types.AutomaticFunctionCallingConfig(
-                    disable=True),
-                thinking_config=types.ThinkingConfig(
-                    thinking_budget=settings.genai_thinking_budget),
-            ),
-        )
-
-        truncated = False
-        try:
-            reason = response.candidates[0].finish_reason
-            truncated = reason is not None and "MAX_TOKENS" in str(reason)
-        except (AttributeError, IndexError, TypeError):
-            pass
-
-        text = getattr(response, "text", None)
-        if text and text.strip():
-            return Generation(text.strip(), truncated=truncated)
-        if not text or not text.strip():
-            reason = getattr(response, "prompt_feedback", None)
-            raise ServiceUnavailable(
-                "The assistant returned an empty response.",
-                detail=str(reason) if reason else None)
-        return text.strip()
-
-
 class GroqProvider:
     """OpenAI-compatible chat completion, called directly over HTTP — Groq
     has no first-party Python SDK dependency here, just their REST API."""
@@ -366,21 +282,7 @@ class GroqProvider:
         return Generation(text.strip(), truncated=truncated)
 
 
-def _select_provider() -> LLMProvider:
-    choice = settings.genai_provider.strip().lower()
-    if choice == "gemini":
-        return GeminiProvider()
-    if choice == "groq":
-        return GroqProvider()
-    # auto: Gemini's free tier is the one that's been running dry, so when
-    # both keys are set, prefer Groq. Falls back to Gemini as the default
-    # when neither is set (status() then reports why it's unavailable).
-    if settings.groq_key_value:
-        return GroqProvider()
-    return GeminiProvider()
-
-
-_provider: LLMProvider = _select_provider()
+_provider: LLMProvider = GroqProvider()
 
 
 def get_provider() -> LLMProvider:
@@ -396,7 +298,7 @@ def scrub_secrets(text: str) -> str:
     out = text
     for pattern in _SECRET_SHAPES:
         out = pattern.sub("[REDACTED]", out)
-    key = settings.gemini_key_value
+    key = settings.groq_key_value
     if key and key in out:
         out = out.replace(key, "[REDACTED]")
     return out
@@ -480,7 +382,7 @@ def status() -> dict[str, Any]:
         "provider": provider.name,
         "model": provider.model if ok else None,
         "reasons": reasons,
-        "key_configured": bool(settings.gemini_key_value or settings.groq_key_value),
+        "key_configured": bool(settings.groq_key_value),
         "max_question_chars": settings.genai_max_question_chars,
         "guarantees": [
             "The assistant reads only. It cannot modify forecasts, models, "
@@ -516,9 +418,9 @@ def _provider_failure(exc: Exception, provider: LLMProvider) -> ServiceUnavailab
     if status is None:
         status = getattr(response, "status_code", None)
 
-    key_env = getattr(provider, "key_env", "GEMINI_API_KEY")
-    model_env = getattr(provider, "model_env", "NPN_GEMINI_MODEL")
-    model_value = getattr(provider, "model", settings.gemini_model)
+    key_env = getattr(provider, "key_env", "GROQ_API_KEY")
+    model_env = getattr(provider, "model_env", "NPN_GROQ_MODEL")
+    model_value = getattr(provider, "model", settings.groq_model)
 
     if "RESOURCE_EXHAUSTED" in text or status == 429 or "429" in text[:32]:
         per_day = "PerDay" in text or "per day" in text.lower()
@@ -527,11 +429,11 @@ def _provider_failure(exc: Exception, provider: LLMProvider) -> ServiceUnavailab
             provider_error="QuotaExceeded",
             retry_helps=not per_day,
             remedy=("The free tier allows a limited number of requests per day. "
-                    f"Set NPN_GENAI_PROVIDER to switch to a different provider "
-                    f"(gemini/groq), enable billing, or wait for the daily reset."
+                    "Enable billing on the Groq account, or wait for the daily "
+                    "reset."
                     if per_day else
-                    "Per-minute rate limit reached — wait about a minute, or "
-                    "set NPN_GENAI_PROVIDER to switch providers."))
+                    "Per-minute rate limit reached — wait about a minute and "
+                    "try again."))
 
     if "UNAVAILABLE" in text or status == 503:
         return ServiceUnavailable(
@@ -599,14 +501,11 @@ def ask(
     provider = get_provider()
     ok, reasons = provider.available()
     if not ok:
-        key_env = getattr(provider, "key_env", "GEMINI_API_KEY")
+        key_env = getattr(provider, "key_env", "GROQ_API_KEY")
         raise ServiceUnavailable(
             "The AI assistant is not configured in this deployment.",
             reasons=reasons,
-            remedy=f"Set {key_env} in the API environment and restart "
-                   f"(or GROQ_API_KEY to use Groq instead — set via "
-                   f"NPN_GENAI_PROVIDER=groq, or leave NPN_GENAI_PROVIDER=auto "
-                   f"and whichever key is present is used).")
+            remedy=f"Set {key_env} in the API environment and restart.")
 
     context = genai_context.resolve(q, store_id, item_id, level, node_id)
     prompt = _build_prompt(q, context, injection)

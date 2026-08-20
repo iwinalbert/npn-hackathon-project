@@ -65,27 +65,15 @@ class Settings(BaseSettings):
     inference_job_ttl_seconds: int = 3600
     inference_timeout_seconds: int = 600
 
-    gemini_api_key: SecretStr | None = Field(
-        default=None,
-        validation_alias=AliasChoices("NPN_GEMINI_API_KEY", "GEMINI_API_KEY"),
-    )
-    gemini_model: str = "gemini-3.7-flash"
     groq_api_key: SecretStr | None = Field(
         default=None,
         validation_alias=AliasChoices("NPN_GROQ_API_KEY", "GROQ_API_KEY"),
     )
     groq_model: str = "openai/gpt-oss-120b"
-    genai_provider: str = Field(
-        default="auto",
-        description="auto | gemini | groq. auto prefers Groq when its key is "
-                    "set (Gemini's free tier is the one that tends to run out "
-                    "of quota), otherwise falls back to Gemini.",
-    )
     genai_enabled: bool = True
     genai_timeout_seconds: float = 30.0
     genai_max_question_chars: int = 800
     genai_max_output_tokens: int = 2048
-    genai_thinking_budget: int = 0
     genai_temperature: float = 0.2
 
     log_level: str = "INFO"
@@ -131,16 +119,12 @@ class Settings(BaseSettings):
         return 0.60
 
     @property
-    def gemini_key_value(self) -> str | None:
-        return self.gemini_api_key.get_secret_value() if self.gemini_api_key else None
-
-    @property
     def groq_key_value(self) -> str | None:
         return self.groq_api_key.get_secret_value() if self.groq_api_key else None
 
     @property
     def genai_configured(self) -> bool:
-        return bool(self.genai_enabled and (self.gemini_key_value or self.groq_key_value))
+        return bool(self.genai_enabled and self.groq_key_value)
 
 
 @lru_cache

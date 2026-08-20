@@ -86,7 +86,7 @@ python tasks.py preflight
 
 You want `PREFLIGHT PASSED`. Two warnings are normal and expected:
 
-- `.env for compose absent` — you have not set a Gemini API key. Optional.
+- `.env for compose absent` — you have not set a Groq API key. Optional.
 - `docker not on PATH` — only if Docker is genuinely not installed.
 
 ---
@@ -169,13 +169,13 @@ almost certainly a missing writable path. See
                     ┌──────────────────────────────▼───────┐
                     │  api  uvicorn :8000  (non-root)      │
                     │    · /data/product   read-only mount │
-                    │    · HTTPS ──► Gemini  (only if a    │
+                    │    · HTTPS ──► Groq    (only if a    │
                     │                 key is configured)   │
                     └──────────────────────────────────────┘
 ```
 
 **One origin.** The browser only ever talks to the frontend. That means no CORS
-is exercised, no API host is compiled into the JavaScript bundle, and the Gemini
+is exercised, no API host is compiled into the JavaScript bundle, and the Groq
 key never leaves the API container.
 
 **Two images, one Dockerfile.** The backend Dockerfile has two targets:

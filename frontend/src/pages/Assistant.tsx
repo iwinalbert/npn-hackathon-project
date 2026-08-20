@@ -206,7 +206,7 @@ export function Assistant() {
             The assistant is optional. Every forecast, accuracy figure and chart in
             this application works without it — it only adds a natural-language
             explanation layer on top. To enable it, set{' '}
-            <code className="font-mono text-ink">GEMINI_API_KEY</code> in the API
+            <code className="font-mono text-ink">GROQ_API_KEY</code> in the API
             environment and restart the service. The key is used server-side only
             and is never sent to the browser.
           </Explain>

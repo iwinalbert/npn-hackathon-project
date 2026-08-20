@@ -224,9 +224,9 @@ curl -s localhost:8000/api/v1/genai/status | python -m json.tool
 
 | Reported reason | Fix |
 |---|---|
-| no key configured | put `GEMINI_API_KEY=...` in the `.env` beside `docker-compose.yml`, then `docker compose up -d --force-recreate api` |
-| model 404 / NOT_FOUND | Google retired the model id. Set `NPN_GEMINI_MODEL=gemini-flash-latest` |
-| timeout | check egress to `generativelanguage.googleapis.com` |
+| no key configured | put `GROQ_API_KEY=...` in the `.env` beside `docker-compose.yml`, then `docker compose up -d --force-recreate api` |
+| model 404 / NOT_FOUND | Groq retired the model id. Check `https://api.groq.com/openai/v1/models` and set `NPN_GROQ_MODEL` to a current one |
+| timeout | check egress to `api.groq.com` |
 
 The key must be in the `.env` next to `docker-compose.yml`, not the one in
 `backend/` — compose reads its own.

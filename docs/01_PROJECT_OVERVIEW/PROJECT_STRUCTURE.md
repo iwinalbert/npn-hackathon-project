@@ -64,7 +64,7 @@ is, what the data is, how it is built, then how it was proved.
 | `04_ARCHITECTURE/` | The architecture proposed and approved before implementation |
 | `05_BACKEND/` | Backend implementation report: data layer, API, model serving |
 | `06_FRONTEND/` | Frontend implementation report: pages, design system, integrity rules |
-| `07_GENAI/` | AI assistant: Gemini integration, key handling, guardrails |
+| `07_GENAI/` | AI assistant: Groq integration, key handling, guardrails |
 | `08_DEPLOYMENT/` | Docker deployment report; Git policy — what is versioned and what is deliberately not |
 | `09_VALIDATION/` | Organisation audits, this reorganisation's report, and `_integrity/` — the SHA-256 manifests over all 522 protected artefacts |
 | `10_RESEARCH_REPORT/` | The paper, the performance report, the Use Case 11 compliance report, the experiment classification |

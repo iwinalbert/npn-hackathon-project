@@ -92,7 +92,7 @@ COMPOSE_FILES = [
     "infra/compose/docker-compose.prod.yml",
 ]
 
-SECRET_KEYS = ("GEMINI_API_KEY", "NPN_GEMINI_API_KEY")
+SECRET_KEYS = ("GROQ_API_KEY", "NPN_GROQ_API_KEY")
 
 
 def _load_yaml(path: Path):
@@ -181,7 +181,7 @@ def check_compose() -> None:
         s.fail("secret interpolation",
                f"literal value found for {', '.join(literal)}")
     else:
-        s.ok("secret interpolation", "GEMINI_API_KEY comes from the environment")
+        s.ok("secret interpolation", "GROQ_API_KEY comes from the environment")
 
 
 REQUIRED_IN_CONTEXT = [
@@ -338,7 +338,7 @@ def check_secrets() -> None:
     else:
         s.ok(".env files", "none tracked")
 
-    key_rx = re.compile(r"AIza[0-9A-Za-z_\-]{35}")
+    key_rx = re.compile(r"gsk_[A-Za-z0-9]{20,}")
     hits = []
     for f in tracked:
         p = ROOT / f
@@ -355,7 +355,7 @@ def check_secrets() -> None:
         s.ok("API keys in tracked files", "none found")
 
     if (ROOT / ".env").is_file():
-        s.ok(".env for compose", "present -- GEMINI_API_KEY will be injected")
+        s.ok(".env for compose", "present -- GROQ_API_KEY will be injected")
     else:
         s.warn(".env for compose",
                "absent -- the stack runs, the AI assistant reports unavailable")

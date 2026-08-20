@@ -105,7 +105,7 @@ jobs:
 
       - name: Assert no secret reached the bundle
         run: |
-          if grep -rEl 'AIza[0-9A-Za-z_-]{35}' dist/ 2>/dev/null; then
+          if grep -rEl 'gsk_[A-Za-z0-9]{20,}' dist/ 2>/dev/null; then
             echo "::error::An API key shape was found in the built bundle"
             exit 1
           fi
@@ -168,14 +168,14 @@ jobs:
 
       - name: No secret baked into any layer
         run: |
-          val=$(docker run --rm --entrypoint printenv npn-forecast-api:ci GEMINI_API_KEY || true)
+          val=$(docker run --rm --entrypoint printenv npn-forecast-api:ci GROQ_API_KEY || true)
           if [ -n "$val" ]; then
-            echo "::error::GEMINI_API_KEY is baked into the image"
+            echo "::error::GROQ_API_KEY is baked into the image"
             exit 1
           fi
-          echo "no GEMINI_API_KEY in the image environment"
+          echo "no GROQ_API_KEY in the image environment"
           docker run --rm --entrypoint sh npn-forecast-api:ci -c \
-            'grep -rEl "AIza[0-9A-Za-z_-]{35}" /app 2>/dev/null && exit 1 || exit 0'
+            'grep -rEl "gsk_[A-Za-z0-9]{20,}" /app 2>/dev/null && exit 1 || exit 0'
 
       - name: API degrades correctly with NO data layer
         run: |
@@ -344,7 +344,7 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION }}
           EC2_INSTANCE_ID: ${{ vars.EC2_INSTANCE_ID }}
           DATA_BUCKET: ${{ vars.DATA_BUCKET }}
-          GEMINI_PARAM_NAME: ${{ vars.GEMINI_PARAM_NAME }}
+          GROQ_PARAM_NAME: ${{ vars.GROQ_PARAM_NAME }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           cat > /tmp/ssm-params.json <<JSON
@@ -353,7 +353,7 @@ jobs:
               "set -e",
               "aws s3 cp s3://${DATA_BUCKET}/compose/docker-compose.deploy.yml /opt/npn/docker-compose.deploy.yml",
               "aws s3 cp s3://${DATA_BUCKET}/compose/remote_deploy.sh /opt/npn/remote_deploy.sh && chmod +x /opt/npn/remote_deploy.sh",
-              "ECR_REGISTRY=${ECR_REGISTRY} IMAGE_TAG=${IMAGE_TAG} AWS_REGION=${AWS_REGION} GEMINI_PARAM_NAME=${GEMINI_PARAM_NAME} /opt/npn/remote_deploy.sh"
+              "ECR_REGISTRY=${ECR_REGISTRY} IMAGE_TAG=${IMAGE_TAG} AWS_REGION=${AWS_REGION} GROQ_PARAM_NAME=${GROQ_PARAM_NAME} /opt/npn/remote_deploy.sh"
             ]
           }
           JSON

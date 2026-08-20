@@ -16,7 +16,7 @@ services:
       NPN_DATA_DIR: /data/product
       NPN_CORS_ORIGINS: "http://localhost:5173,http://localhost:4173,http://localhost:8080"
       NPN_LOG_LEVEL: INFO
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
     volumes:
       - ./backend/data:/data/product:ro
     healthcheck:

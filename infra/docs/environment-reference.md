@@ -19,7 +19,7 @@ uncommon · **Do not** = changing it invalidates the frozen model's contract.
 | `NPN_ENVIRONMENT` | `production` | selects production behaviour |
 | `NPN_DATA_DIR` | `/data/product` | where the three data files are mounted |
 | `NPN_LOG_LEVEL` | `INFO` | `DEBUG` for diagnosis, never routinely |
-| `GEMINI_API_KEY` | *(from a secret store)* | optional AI assistant |
+| `GROQ_API_KEY` | *(from a secret store)* | optional AI assistant |
 | `API_HOST` *(frontend)* | `api:8000` | where nginx proxies `/api/` |
 
 Everything else has a working default.
@@ -99,21 +99,17 @@ invisible to the others.
 
 | Variable | Default | Notes |
 |---|---|---|
-| `GEMINI_API_KEY` | unset | Also accepted as `NPN_GEMINI_API_KEY`. |
-| `NPN_GEMINI_MODEL` | `gemini-3.7-flash` | Google retires model ids without much notice. If the assistant starts returning 404, set `gemini-flash-latest` — an alias that never 404s, at the cost of the model changing under you. |
-| `GROQ_API_KEY` | unset | Also accepted as `NPN_GROQ_API_KEY`. An alternative provider — Gemini's free tier is the one that tends to run out of daily quota; Groq's doesn't share that limit. |
-| `NPN_GROQ_MODEL` | `openai/gpt-oss-120b` | Groq's hosted models rotate too — `curl https://api.groq.com/openai/v1/models -H "Authorization: Bearer $GROQ_API_KEY"` lists what's currently live if this starts 404ing. |
-| `NPN_GENAI_PROVIDER` | `auto` | `auto` \| `gemini` \| `groq`. `auto` prefers Groq when `GROQ_API_KEY` is set (falls back to Gemini otherwise), so setting the Groq key is enough to switch over without touching this. |
+| `GROQ_API_KEY` | unset | Also accepted as `NPN_GROQ_API_KEY`. |
+| `NPN_GROQ_MODEL` | `openai/gpt-oss-120b` | Groq's hosted models rotate — `curl https://api.groq.com/openai/v1/models -H "Authorization: Bearer $GROQ_API_KEY"` lists what's currently live if this starts 404ing. |
 | `NPN_GENAI_ENABLED` | `true` | `false` disables the assistant even with a key. |
 | `NPN_GENAI_TIMEOUT_SECONDS` | `30.0` | |
 | `NPN_GENAI_MAX_QUESTION_CHARS` | `800` | |
-| `NPN_GENAI_MAX_OUTPUT_TOKENS` | `2048` | Gemini 3.x spends this budget on internal reasoning **before** writing. Lowering it truncates answers mid-sentence. |
-| `NPN_GENAI_THINKING_BUDGET` | `0` | `0` disables extended thinking, `-1` lets the model decide. Zero is right here: facts arrive precomputed and the model is forbidden from doing arithmetic. |
+| `NPN_GENAI_MAX_OUTPUT_TOKENS` | `2048` | Lowering it truncates answers mid-sentence. |
 | `NPN_GENAI_TEMPERATURE` | `0.2` | |
 
-**Both spellings of either key work**, from a real environment variable or a
-`.env` file. `GEMINI_API_KEY`/`GROQ_API_KEY` are unprefixed because that is
-what each provider's own tooling and most hosting platforms use.
+**Both spellings of the key work**, from a real environment variable or a
+`.env` file. `GROQ_API_KEY` is unprefixed because that is what Groq's own
+tooling and most hosting platforms use.
 
 Which `.env` is read depends on how you start the stack:
 
@@ -126,7 +122,7 @@ Putting the key in the wrong one is a common and confusing mistake.
 
 Leaving it unset is fully supported: every other feature works and
 `/genai/status` explains why the assistant is unavailable. The local guardrails
-still function, because they never call Gemini at all.
+still function, because they never call Groq at all.
 
 ---
 

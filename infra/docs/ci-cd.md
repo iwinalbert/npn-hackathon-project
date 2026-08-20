@@ -93,7 +93,7 @@ argue:
 | Check | Asserts |
 |---|---|
 | `docker run --entrypoint id` | uid **10001** in both backend targets |
-| `printenv GEMINI_API_KEY` | empty — no secret baked into the image |
+| `printenv GROQ_API_KEY` | empty — no secret baked into the image |
 | filesystem grep over `/app` | no key shape in any layer |
 | boot with **no data mount** | `/health` 200, `/ready` **false with a reason** |
 | frontend boot + `/forecast` | 200 — the SPA fallback works |

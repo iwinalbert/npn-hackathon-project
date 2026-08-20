@@ -87,12 +87,12 @@ scroll clear of it.
 
 ### The assistant page
 
-Optional: it is driven by `/genai/*`, and if the API has no `GEMINI_API_KEY` the
+Optional: it is driven by `/genai/*`, and if the API has no `GROQ_API_KEY` the
 page explains why it is unavailable and states that the rest of the application
 works without it — no broken input box, no silent failure.
 
 **No key or AI SDK exists in this bundle.** Questions go to the FastAPI backend,
-which holds the key and calls Gemini server-side. A test asserts the rendered DOM
+which holds the key and calls Groq server-side. A test asserts the rendered DOM
 never contains anything key-shaped.
 
 Every answer carries a provenance strip: which data family it drew on, how long

@@ -183,13 +183,13 @@ EC2_INLINE_POLICY=$(cat <<EOF
       "Resource": ["arn:aws:s3:::${DATA_BUCKET}", "arn:aws:s3:::${DATA_BUCKET}/*"]
     },
     {
-      "Sid": "ReadGeminiKey",
+      "Sid": "ReadGroqKey",
       "Effect": "Allow",
       "Action": "ssm:GetParameter",
-      "Resource": "arn:aws:ssm:${AWS_REGION}:${ACCOUNT_ID}:parameter/${PROJECT}/gemini-api-key"
+      "Resource": "arn:aws:ssm:${AWS_REGION}:${ACCOUNT_ID}:parameter/${PROJECT}/groq-api-key"
     },
     {
-      "Sid": "DecryptGeminiKey",
+      "Sid": "DecryptGroqKey",
       "Effect": "Allow",
       "Action": "kms:Decrypt",
       "Resource": "arn:aws:kms:${AWS_REGION}:${ACCOUNT_ID}:alias/aws/ssm"
@@ -201,7 +201,7 @@ EOF
 aws iam put-role-policy --role-name "$EC2_ROLE_NAME" \
     --policy-name "${PROJECT}-ec2-inline-policy" \
     --policy-document "$EC2_INLINE_POLICY" >/dev/null
-echo "[ ok ] data-bucket-read + gemini-key-read policy attached to $EC2_ROLE_NAME"
+echo "[ ok ] data-bucket-read + groq-key-read policy attached to $EC2_ROLE_NAME"
 
 INSTANCE_PROFILE="${PROJECT}-ec2-profile"
 if aws iam get-instance-profile --instance-profile-name "$INSTANCE_PROFILE" >/dev/null 2>&1; then
@@ -233,7 +233,7 @@ else
     echo "[ ok ] security group already exists: $SG_ID"
 fi
 
-PARAM_NAME="/${PROJECT}/gemini-api-key"
+PARAM_NAME="/${PROJECT}/groq-api-key"
 if aws ssm get-parameter --name "$PARAM_NAME" >/dev/null 2>&1; then
     echo "[ ok ] SSM parameter already exists: $PARAM_NAME (value untouched)"
 else
